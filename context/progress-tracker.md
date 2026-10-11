@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Not started
+- 02 Editor chrome (navbar, project sidebar, dialog pattern)
 
 ## Current Goal
 
-- Define the immediate implementation goal here.
+- Build base editor chrome components per `context/feature-specs/02-editor.md`.
 
 ## Completed
 
@@ -17,6 +17,9 @@ Update this file whenever the current phase, active feature, or implementation s
 ## In Progress
 
 - None.
+
+- 02 Editor: `components/editor/editor-navbar.tsx` (3-section fixed-height navbar, sidebar toggle with PanelLeftOpen/Close), `project-sidebar.tsx` (floating overlay, slide-in, `isOpen`, Projects/Shared tabs with empty states, New Project button), `editor-dialog.tsx` (token-styled dialog pattern with title/description/footer; no concrete dialogs yet).
+- Editor layout: `app/editor/layout.tsx` renders `components/editor/editor-shell.tsx` (client; owns sidebar open state, composes navbar + floating sidebar over `main`); placeholder `app/editor/page.tsx`.
 
 ## Next Up
 
