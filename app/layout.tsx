@@ -1,4 +1,7 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/ui/themes";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -23,7 +26,33 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        <Suspense>
+          <ClerkProvider
+            appearance={{
+              theme: dark,
+              variables: {
+                colorBackground: "var(--bg-surface)",
+                colorInput: "var(--bg-elevated)",
+                colorForeground: "var(--text-primary)",
+                colorMutedForeground: "var(--text-muted)",
+                colorPrimary: "var(--accent-primary)",
+                colorPrimaryForeground: "var(--bg-base)",
+                colorDanger: "var(--state-error)",
+                colorSuccess: "var(--state-success)",
+                colorWarning: "var(--state-warning)",
+                colorBorder: "var(--border-default)",
+                colorInputForeground: "var(--text-primary)",
+                colorNeutral: "var(--text-primary)",
+                borderRadius: "var(--radius)",
+                fontFamily: "inherit",
+              },
+            }}
+          >
+            {children}
+          </ClerkProvider>
+        </Suspense>
+      </body>
     </html>
   );
 }
