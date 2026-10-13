@@ -6,16 +6,18 @@ import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectDialogsProvider } from "@/components/editor/project-dialogs-provider";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
+import type { Project } from "@/lib/projects";
 
 interface EditorShellProps {
+  projects: Project[];
   children: ReactNode;
 }
 
-export function EditorShell({ children }: EditorShellProps) {
+export function EditorShell({ projects, children }: EditorShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <ProjectDialogsProvider>
+    <ProjectDialogsProvider projects={projects}>
       <div className="flex h-screen flex-col bg-base text-copy-primary">
         <EditorNavbar
           isSidebarOpen={isSidebarOpen}

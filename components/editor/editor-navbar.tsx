@@ -2,8 +2,11 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
+
+const subscribe = () => () => {};
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean;
@@ -14,6 +17,12 @@ export function EditorNavbar({
   isSidebarOpen,
   onToggleSidebar,
 }: EditorNavbarProps) {
+  // Clerk mounts its UserButton client-side only; defer it to avoid a hydration mismatch.
+  const isClient = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  );
   const ToggleIcon = isSidebarOpen ? PanelLeftClose : PanelLeftOpen;
   const label = isSidebarOpen ? "Close sidebar" : "Open sidebar";
 
@@ -33,7 +42,7 @@ export function EditorNavbar({
       </div>
       <div className="flex items-center justify-center" />
       <div className="flex items-center justify-end">
-        <UserButton />
+        {isClient && <UserButton />}
       </div>
     </header>
   );
