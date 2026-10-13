@@ -7,10 +7,14 @@ Execute multiple operations atomically.
 Array of operations executed in order:
 
 ```typescript
-const [user, post] = await prisma.$transaction([
-  prisma.user.create({ data: { email: 'alice@prisma.io' } }),
-  prisma.post.create({ data: { title: 'Hello', authorId: 1 } })
-])
+const { user, post } = await prisma.$transaction(async (tx) => {
+  const user = await tx.user.create({ data: { email: 'alice@prisma.io' } })
+  const post = await tx.post.create({
+    data: { title: 'Hello', authorId: user.id }
+  })
+
+  return { user, post }
+})
 ```
 
 ### All or nothing
@@ -72,7 +76,7 @@ await prisma.$transaction(
 
 | Level | Description |
 |-------|-------------|
-| `ReadUncommitted` | Lowest isolation, can read uncommitted changes |
+| `ReadUncommitted` | Behavior depends on the database provider; PostgreSQL maps it to `ReadCommitted` and does not allow reading uncommitted changes |
 | `ReadCommitted` | Only read committed changes |
 | `RepeatableRead` | Consistent reads within transaction |
 | `Serializable` | Highest isolation, serialized execution |
@@ -150,11 +154,11 @@ try {
   await prisma.$transaction(async (tx) => {
     // operations
   })
-} catch (e) {
-  if (e.code === 'P2002') {
+} catch (error) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
     // Handle unique constraint violation
   }
-  throw e
+  throw error
 }
 ```
 

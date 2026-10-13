@@ -111,7 +111,7 @@ class ExampleQueryable {
 
 ### Result mapping
 
-Return `columnNames`, `columnTypes`, and `rows` with identical lengths/order. Map driver metadata to `ColumnTypeEnum` deliberately:
+Return `columnNames`, `columnTypes`, and `rows` with matching metadata lengths; `rows` may be empty and does not need to match the metadata arrays, but each row must contain one value per column. Map driver metadata to `ColumnTypeEnum` deliberately:
 
 - signed integer widths to `Int32`/`Int64`; preserve 64-bit values without JS number truncation
 - decimal/numeric to `Numeric` using the representation expected by Prisma
@@ -119,8 +119,9 @@ Return `columnNames`, `columnTypes`, and `rows` with identical lengths/order. Ma
 - date-only, time-only, and timestamp to `Date`, `Time`, and `DateTime`
 - UUID, JSON, enum, arrays, and provider-specific unknown values to their explicit types
 - unsupported native types to `DriverAdapterError({ kind: 'UnsupportedNativeDataType', type })`
+- MySQL and SQLite inserts that use `AUTO_INCREMENT` must include `lastInsertId` in the mapped result so generated IDs are available to Prisma
 
-Test `null`, empty arrays, array element types, big integers, decimals, byte arrays, JSON, dates, and user-defined/unknown native types.
+Test `null`, empty arrays, array element types, big integers, decimals, byte arrays, JSON, dates, and user-defined/unknown native types. Verify generated IDs for inserts and ensure `columnNames` and `columnTypes` have equal lengths.
 
 ### Script execution
 
@@ -153,7 +154,7 @@ async startTransaction(level?: IsolationLevel): Promise<Transaction> {
 
 ### Commit and rollback
 
-Prisma coordinates the SQL `COMMIT`/`ROLLBACK` through `executeRaw`. The transaction object's `commit()` and `rollback()` methods are lifecycle hooks: detach listeners and release the dedicated connection exactly once. They must not issue a second SQL commit/rollback.
+Prisma coordinates the SQL `COMMIT`/`ROLLBACK` through `executeRaw`. The release-only `commit()` and `rollback()` lifecycle hooks apply when `usePhantomQuery` is `false`. When it is `true`, Prisma does not send SQL through `executeRaw`, so the real driver transaction must finish before detaching listeners and releasing the connection. In either case, `commit()` and `rollback()` must release the dedicated connection exactly once and must not issue a second SQL commit/rollback.
 
 ```typescript
 class ExampleTransaction extends ExampleQueryable implements Transaction {

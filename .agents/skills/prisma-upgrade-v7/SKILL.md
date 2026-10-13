@@ -200,6 +200,8 @@ MongoDB does not have a SQL `@prisma/adapter-*` package in the published Prisma 
 ### 6. Update client instantiation
 
 ```typescript
+import 'dotenv/config'
+
 // Before (v6)
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
@@ -214,6 +216,8 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter })
 ```
+
+Ensure `DATABASE_URL` is available at runtime, either by loading `.env` with `dotenv/config` or by injecting the variable in the host environment.
 
 ### 7. Replace Prisma.validator with satisfies
 
@@ -241,8 +245,8 @@ npx prisma migrate dev  # if needed
 - Ensure `prisma generate` ran successfully
 
 ### SSL certificate errors
-- Add `ssl: { rejectUnauthorized: false }` to the adapter config if you need to preserve old behavior
-- Or configure your certificates properly with `NODE_EXTRA_CA_CERTS` / OpenSSL CA settings
+- Only add `ssl: { rejectUnauthorized: false }` for local development; do not use it in deployed environments
+- Configure trusted certificates in production with `NODE_EXTRA_CA_CERTS` or your OpenSSL CA settings
 
 ### Connection timeout issues
 - Driver adapters use the underlying driver's defaults, which differ from v6

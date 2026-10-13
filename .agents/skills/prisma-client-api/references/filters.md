@@ -56,12 +56,12 @@ where: { email: { startsWith: 'alice' } }
 // Ends with
 where: { email: { endsWith: '@prisma.io' } }
 
-// Case-insensitive (default for some databases)
-where: { 
-  email: { 
+// Case-insensitive (PostgreSQL and MongoDB only)
+where: {
+  email: {
     contains: 'PRISMA',
-    mode: 'insensitive' 
-  } 
+    mode: 'insensitive'
+  }
 }
 ```
 
@@ -74,7 +74,7 @@ where: { deletedAt: null }
 // Is not null
 where: { deletedAt: { not: null } }
 
-// Using isSet (for optional fields)
+// Using isSet (MongoDB-specific optional-field filter)
 where: { middleName: { isSet: true } }
 ```
 
@@ -201,14 +201,14 @@ where: {
 // Users without profile
 where: {
   profile: {
-    isNot: null
+    is: null
   }
 }
 ```
 
 ## Array Field Filters
 
-For fields like `String[]`:
+For fields like `String[]` (supported only by PostgreSQL, CockroachDB, and MongoDB):
 
 ```typescript
 // Has element
@@ -226,11 +226,21 @@ where: { tags: { isEmpty: true } }
 
 ## JSON Filters
 
+JSON path syntax varies by provider: PostgreSQL uses array paths, while MySQL uses string paths such as `$.settings.theme`.
+
 ```typescript
-// Path-based filter
+// PostgreSQL path-based filter
 where: {
   metadata: {
     path: ['settings', 'theme'],
+    equals: 'dark'
+  }
+}
+
+// MySQL equivalent path string
+where: {
+  metadata: {
+    path: '$.settings.theme',
     equals: 'dark'
   }
 }
@@ -246,8 +256,10 @@ where: {
 
 ## Full-Text Search
 
+Provider-specific full-text support varies by database. For PostgreSQL, Prisma ORM 7 exposes the preview `fullTextSearchPostgres` feature; generic `@@fulltext` setup is not universal across connectors.
+
 ```typescript
-// Requires @@fulltext index
+// Requires a provider-specific full-text index or preview feature
 where: {
   content: {
     search: 'prisma database'
