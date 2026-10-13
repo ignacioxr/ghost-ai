@@ -12,7 +12,9 @@ function isPublicPath(pathname: string) {
 }
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicPath(req.nextUrl.pathname)) {
+  const { pathname } = req.nextUrl;
+  // API routes authenticate themselves so unauthenticated calls get a 401, not a redirect/404.
+  if (!pathname.startsWith("/api/") && !isPublicPath(pathname)) {
     await auth.protect();
   }
 });

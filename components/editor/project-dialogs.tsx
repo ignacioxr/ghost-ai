@@ -6,11 +6,10 @@ import { EditorDialog } from "@/components/editor/editor-dialog";
 import { useProjectDialogsContext } from "@/components/editor/project-dialogs-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { slugify } from "@/lib/projects";
 import type { ProjectDialogState } from "@/hooks/use-project-dialogs";
 
 export function ProjectDialogs() {
-  const { dialog, name, setName, isLoading, close, submit } =
+  const { dialog, name, setName, roomId, error, isLoading, close, submit } =
     useProjectDialogsContext();
 
   // Keep the last open dialog's content mounted while the close animation runs.
@@ -21,7 +20,6 @@ export function ProjectDialogs() {
   const isNameDialog = dialog.type === "create" || dialog.type === "rename";
   const isNameView = view.type === "create" || view.type === "rename";
   const canSubmit = !isLoading && (dialog.type === "delete" || name.trim() !== "");
-  const slug = slugify(name);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -42,17 +40,19 @@ export function ProjectDialogs() {
         onChange={(event) => setName(event.target.value)}
         placeholder="Project name"
         aria-label="Project name"
+        className="text-copy-primary placeholder:text-copy-faint"
         disabled={isLoading}
       />
       {view.type === "create" && (
         <p className="text-xs text-copy-muted">
-          Slug:{" "}
-          <span className="font-mono text-copy-secondary">
-            {slug || "your-project"}
-          </span>
+          Room ID:{" "}
+          <span className="font-mono text-copy-secondary">{roomId}</span>
         </p>
-      )}
-    </div>
+      )}      {error && (
+        <p className="text-sm text-red-500" role="alert">
+          {error}
+        </p>
+      )}    </div>
   );
 
   if (view.type === "delete") {
