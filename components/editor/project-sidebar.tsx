@@ -1,10 +1,12 @@
 "use client";
 
-import { FolderOpen, Plus, Users, X } from "lucide-react";
+import { FolderOpen, Pencil, Plus, Trash2, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useProjectDialogsContext } from "@/components/editor/project-dialogs-provider";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Project } from "@/lib/projects";
 import { cn } from "@/lib/utils";
 
 interface ProjectSidebarProps {
@@ -28,7 +30,50 @@ function EmptyState({ icon, title, description }: EmptyStateProps) {
   );
 }
 
+interface ProjectItemProps {
+  project: Project;
+  onRename: (project: Project) => void;
+  onDelete: (project: Project) => void;
+}
+
+function ProjectItem({ project, onRename, onDelete }: ProjectItemProps) {
+  return (
+    <li className="group flex items-center gap-1 rounded-xl px-2 py-1.5 hover:bg-subtle">
+      <span className="min-w-0 flex-1 truncate text-sm text-copy-secondary">
+        {project.name}
+      </span>
+      {project.isOwner && (
+        <div className="flex shrink-0 items-center opacity-100 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onRename(project)}
+            aria-label={`Rename ${project.name}`}
+            className="text-copy-muted hover:text-copy-primary"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onDelete(project)}
+            aria-label={`Delete ${project.name}`}
+            className="text-copy-muted hover:text-state-error"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
+  const { projects, openCreate, openRename, openDelete } =
+    useProjectDialogsContext();
+  const owned = projects.filter((p) => p.isOwner);
+  const shared = projects.filter((p) => !p.isOwner);
+
   return (
     <aside
       aria-label="Projects"
@@ -60,23 +105,49 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           </TabsList>
         </div>
         <TabsContent value="my-projects" className="min-h-0">
-          <EmptyState
-            icon={<FolderOpen className="h-8 w-8" />}
-            title="No projects yet"
-            description="Create a project to get started."
-          />
+          {owned.length === 0 ? (
+            <EmptyState
+              icon={<FolderOpen className="h-8 w-8" />}
+              title="No projects yet"
+              description="Create a project to get started."
+            />
+          ) : (
+            <ul className="flex flex-col gap-0.5 px-2 pt-2">
+              {owned.map((project) => (
+                <ProjectItem
+                  key={project.id}
+                  project={project}
+                  onRename={openRename}
+                  onDelete={openDelete}
+                />
+              ))}
+            </ul>
+          )}
         </TabsContent>
         <TabsContent value="shared" className="min-h-0">
-          <EmptyState
-            icon={<Users className="h-8 w-8" />}
-            title="Nothing shared with you"
-            description="Projects shared with you will appear here."
-          />
+          {shared.length === 0 ? (
+            <EmptyState
+              icon={<Users className="h-8 w-8" />}
+              title="Nothing shared with you"
+              description="Projects shared with you will appear here."
+            />
+          ) : (
+            <ul className="flex flex-col gap-0.5 px-2 pt-2">
+              {shared.map((project) => (
+                <ProjectItem
+                  key={project.id}
+                  project={project}
+                  onRename={openRename}
+                  onDelete={openDelete}
+                />
+              ))}
+            </ul>
+          )}
         </TabsContent>
       </Tabs>
 
       <div className="shrink-0 border-t border-surface-border p-4">
-        <Button className="w-full">
+        <Button className="w-full" onClick={openCreate}>
           <Plus className="h-4 w-4" />
           New Project
         </Button>
