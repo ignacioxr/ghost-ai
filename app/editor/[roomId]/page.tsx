@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AccessDenied } from "@/components/editor/access-denied";
-import { WorkspaceCanvas } from "@/components/editor/workspace-canvas";
+import { LiveblocksCanvas } from "@/components/editor/liveblocks-canvas";
 import {
   getCurrentIdentity,
   getProjectIfAccessible,
@@ -21,7 +21,7 @@ async function Workspace({
   const project = await getProjectIfAccessible(identity, roomId);
   if (!project) return <AccessDenied />;
 
-  return <WorkspaceCanvas />;
+  return <LiveblocksCanvas roomId={roomId} />;
 }
 
 export default function WorkspacePage({

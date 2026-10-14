@@ -34,7 +34,7 @@ export function EditorShell({ projects, children }: EditorShellProps) {
           onToggleAiSidebar={() => setIsAiSidebarOpen((open) => !open)}
           onShare={() => setIsShareOpen(true)}
         />
-        <div className="relative flex min-h-0 flex-1 gap-3 overflow-hidden p-3">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
           {isSidebarOpen && (
             <div
               aria-hidden
@@ -46,11 +46,11 @@ export function EditorShell({ projects, children }: EditorShellProps) {
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
           />
-          <main className="h-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-surface-border bg-surface">{children}</main>
+          <main className="absolute inset-0 overflow-hidden bg-base">{children}</main>
           {activeProject && isAiSidebarOpen && (
             <aside
               aria-label="AI assistant"
-              className="hidden h-full w-96 shrink-0 flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface lg:flex"
+              className="absolute top-3 right-3 bottom-3 z-30 hidden w-96 flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface/95 shadow-2xl shadow-black/40 backdrop-blur lg:flex"
             >
               <div className="flex shrink-0 items-start justify-between border-b border-surface-border px-5 py-4">
                 <div className="leading-tight">
