@@ -1,6 +1,8 @@
 "use client";
 
 import { FolderOpen, Pencil, Plus, Trash2, Users, X } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { useProjectDialogsContext } from "@/components/editor/project-dialogs-provider";
@@ -32,16 +34,37 @@ function EmptyState({ icon, title, description }: EmptyStateProps) {
 
 interface ProjectItemProps {
   project: Project;
+  isActive: boolean;
   onRename: (project: Project) => void;
   onDelete: (project: Project) => void;
 }
 
-function ProjectItem({ project, onRename, onDelete }: ProjectItemProps) {
+function ProjectItem({
+  project,
+  isActive,
+  onRename,
+  onDelete,
+}: ProjectItemProps) {
   return (
-    <li className="group flex items-center gap-1 rounded-xl px-2 py-1.5 hover:bg-subtle">
-      <span className="min-w-0 flex-1 truncate text-sm text-copy-secondary">
+    <li
+      className={cn(
+        "group flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 hover:bg-subtle",
+        isActive && "border-brand/30 bg-accent-dim hover:bg-accent-dim"
+      )}
+    >
+      {isActive && (
+        <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+      )}
+      <Link
+        href={`/editor/${project.id}`}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          "min-w-0 flex-1 truncate text-sm",
+          isActive ? "font-medium text-copy-primary" : "text-copy-secondary"
+        )}
+      >
         {project.name}
-      </span>
+      </Link>
       {project.isOwner && (
         <div className="flex shrink-0 items-center opacity-100 md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
           <Button
@@ -71,6 +94,7 @@ function ProjectItem({ project, onRename, onDelete }: ProjectItemProps) {
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   const { projects, openCreate, openRename, openDelete } =
     useProjectDialogsContext();
+  const { roomId } = useParams<{ roomId?: string }>();
   const owned = projects.filter((p) => p.isOwner);
   const shared = projects.filter((p) => !p.isOwner);
 
@@ -80,8 +104,8 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
       aria-hidden={!isOpen}
       inert={!isOpen}
       className={cn(
-        "absolute top-0 bottom-0 left-0 z-30 flex w-72 flex-col border-r border-surface-border bg-surface/95 backdrop-blur-md transition-transform duration-200 ease-out",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "absolute top-3 bottom-3 left-3 z-30 flex w-72 flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface transition-transform duration-200 ease-out md:static md:z-auto md:h-full md:shrink-0",
+        isOpen ? "translate-x-0" : "-translate-x-[110%] md:hidden"
       )}
     >
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-surface-border px-4">
@@ -117,6 +141,7 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
                 <ProjectItem
                   key={project.id}
                   project={project}
+                  isActive={project.id === roomId}
                   onRename={openRename}
                   onDelete={openDelete}
                 />
@@ -137,6 +162,7 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
                 <ProjectItem
                   key={project.id}
                   project={project}
+                  isActive={project.id === roomId}
                   onRename={openRename}
                   onDelete={openDelete}
                 />

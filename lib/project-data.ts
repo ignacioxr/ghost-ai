@@ -38,22 +38,3 @@ export async function getUserProjects(userId: string): Promise<UserProjects> {
     shared: shared.map((p) => ({ ...p, isOwner: false })),
   };
 }
-
-export async function getAccessibleProject(userId: string, projectId: string) {
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const emails = user.emailAddresses
-    .filter((e) => e.verification?.status === "verified")
-    .map((e) => e.emailAddress);
-
-  return prisma.project.findFirst({
-    where: {
-      id: projectId,
-      OR: [
-        { ownerId: userId },
-        { collaborators: { some: { email: { in: emails } } } },
-      ],
-    },
-    select: { id: true, name: true },
-  });
-}

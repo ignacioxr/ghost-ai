@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- 07 Wire Editor Home
+- 09 Share Dialog
 
 ## Current Goal
 
-- Complete the editor home integration: real project data fetching, working dialog actions, friendly error states, and the existing `/editor` experience until a workspace page exists.
+- Share dialog: owners invite/remove collaborators by email, collaborators view the list read-only; Clerk enrichment (name/avatar).
 
 ## Completed
 
@@ -28,9 +28,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - 07 Wire Editor Home: implemented, `npm run build` passes (manual browser check pending). `app/editor/layout.tsx` (server) fetches owned + shared projects via `lib/project-data.ts` (`getUserProjects`; shared = collaborator email matches Clerk user emails) and passes them to `EditorShell` → `ProjectDialogsProvider`. `use-project-dialogs` now calls the real API (create POSTs `{id: roomId, name}` then pushes `/editor/[id]`; rename PATCH + refresh; delete DELETE + redirect to `/editor` if active workspace else refresh). Room ID = `slugify(name)-<6 char suffix>`, previewed in create dialog; `POST /api/projects` accepts optional `id` (validated, 409 on duplicate). Mock data removed from `lib/projects.ts`. Added placeholder workspace route `app/editor/[projectId]/page.tsx` (access-checked via `getAccessibleProject`; shows name + room ID) so create has a navigation target.
 
+- 08 Editor Workspace Shell: implemented, `npm run build` passes (manual browser check pending). Route renamed `app/editor/[projectId]` → `[roomId]`; server page redirects unauthenticated users to `/sign-in`, renders `components/editor/access-denied.tsx` for missing/forbidden projects, else `workspace-canvas.tsx` (dark placeholder). `lib/project-access.ts` has `getCurrentIdentity` (Clerk userId + primary email) and `getProjectIfAccessible` (owner or collaborator by primary email); replaced `getAccessibleProject` in `lib/project-data.ts`. `EditorShell` reads `roomId` via `useParams`; when it matches a known project the navbar shows project name + Share button (no behavior) + AI sidebar toggle, and a right-hand AI placeholder sidebar appears (md+). `ProjectSidebar` items now link to `/editor/[id]` and highlight the active room. Restyled to match the design screenshot: three rounded bordered panels with gaps (docked sidebar on md+, overlay on mobile; AI Copilot panel on lg+), navbar with name + "Workspace" subtitle and teal AI button, gridded canvas placeholder with glow.
+
+- 09 Share Dialog: implemented (see build result below; manual browser check pending). `app/api/projects/[projectId]/collaborators/route.ts`: GET (owner or collaborator; returns `isOwner` + list), POST invite and DELETE remove (owner only, 401/403/404; emails lowercased, validated, 409 on duplicate), list enriched via Clerk `getUserList({emailAddress})` with email-only fallback. `components/editor/share-dialog.tsx` (invite form + remove buttons for owners only, read-only list for collaborators, Copy link with 2s `Copied!`). Navbar Share button now opens it via `EditorShell`. No local user table. Restyled to the design screenshot: header with divider, Workspace link card, pill email invite card, "People with access" list with total count, OWNER/COLLABORATOR badges, red trash button. API responses now return `{ owner, collaborators }` (owner profile from Clerk) so the owner row and count render.
+
 ## Next Up
 
-- Next feature spec (not yet planned). `/editor/[projectId]` is a placeholder; canvas/Liveblocks not built.
+- Next feature spec (not yet planned). Canvas, Liveblocks, AI chat, and sharing are not built.
 
 ## Open Questions
 
