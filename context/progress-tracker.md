@@ -55,6 +55,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
+- Fixed concrete doc issues in the Liveblocks reference library (broken links, invalid examples, and typos) without changing the working app code paths.
 - Run node commands with Node >=20 (shell default is 18; use nvm v22).
 - shadcn CLI generated `import { cn } from "cn"` (unrelated npm package); replaced with `@/lib/utils` in components/ui/*.
 - `.env.local` lacked sign-in/up URL vars; added `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL` and the two `*_FALLBACK_REDIRECT_URL=/editor` (standard Clerk names). Mirror them in deployment env.

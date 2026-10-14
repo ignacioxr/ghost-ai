@@ -82,7 +82,7 @@ function Cursor({ connectionId }: { connectionId: number }) {
 Using
 [`useOthersMapped`](https://liveblocks.io/docs/api-reference/liveblocks-react#useOthersMapped)
 returns an array of a certain part of user's presence, and only updates when
-this part of the presence changes. For example, if your app haas the concept of
+this part of the presence changes. For example, if your app has the concept of
 a user typing, and if you'd just like to check if each user is typing or not,
 return an array of their `isTyping` properties.
 
@@ -121,5 +121,5 @@ function Typing() {
 }
 ```
 
-This still updates when any user's presence value changes, but its more
-efficient that not using `shallow`, which would update it on every render.
+This still updates when any user's presence value changes, but it's more
+efficient than not using `shallow`, which would update it on every render.

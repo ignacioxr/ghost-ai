@@ -30,8 +30,8 @@ function TextEditors() {
   const editorIds = useStorage((root) => root.editorIds);
 
   const newEditor = useMutation(({ storage }) => {
-    const newId = nanoid();
-    storage.get("editorsIds").push(newId);
+    const newId = crypto.randomUUID();
+    storage.get("editorIds").push(newId);
   }, []);
 
   return (
@@ -39,14 +39,14 @@ function TextEditors() {
       {editorIds.map((editorId) => (
         <TextEditor key={editorId} field={editorId} />
       ))}
-      <button>New editor</button>
+      <button onClick={newEditor}>New editor</button>
     </div>
   );
 }
 
 function TextEditor({ field }: { field: string }) {
   const liveblocks = useLiveblocksExtension({
-    field: "editor-one",
+    field,
   });
 
   return (

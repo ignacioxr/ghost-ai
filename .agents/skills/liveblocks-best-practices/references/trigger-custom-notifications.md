@@ -190,6 +190,8 @@ inside a single notification.
       // Each batched `activityData` is added to the `activities` array
       const { activities } = props.inboxNotification;
 
+      const title = activities[0]?.data.title ?? "Alert";
+
       return (
         <InboxNotification.Custom
           {...props}
