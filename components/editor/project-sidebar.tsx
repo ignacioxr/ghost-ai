@@ -104,8 +104,10 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
       aria-hidden={!isOpen}
       inert={!isOpen}
       className={cn(
-        "absolute top-3 bottom-3 left-3 z-30 flex w-72 flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface transition-transform duration-200 ease-out md:static md:z-auto md:h-full md:shrink-0",
-        isOpen ? "translate-x-0" : "-translate-x-[110%] md:hidden"
+        "absolute top-3 bottom-3 left-3 z-30 flex w-72 flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface/95 shadow-2xl shadow-black/40 backdrop-blur transition-transform duration-200 ease-out",
+        isOpen
+          ? "translate-x-0"
+          : "pointer-events-none invisible -translate-x-[calc(100%+1.5rem)] shadow-none"
       )}
     >
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-surface-border px-4">

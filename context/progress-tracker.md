@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- 09 Share Dialog
+- 12 Shape Panel
 
 ## Current Goal
 
-- Share dialog: owners invite/remove collaborators by email, collaborators view the list read-only; Clerk enrichment (name/avatar).
+- Drag shapes from a bottom panel onto the collaborative canvas to create nodes.
 
 ## Completed
 
@@ -32,9 +32,15 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - 09 Share Dialog: implemented (see build result below; manual browser check pending). `app/api/projects/[projectId]/collaborators/route.ts`: GET (owner or collaborator; returns `isOwner` + list), POST invite and DELETE remove (owner only, 401/403/404; emails lowercased, validated, 409 on duplicate), list enriched via Clerk `getUserList({emailAddress})` with email-only fallback. `components/editor/share-dialog.tsx` (invite form + remove buttons for owners only, read-only list for collaborators, Copy link with 2s `Copied!`). Navbar Share button now opens it via `EditorShell`. No local user table. Restyled to the design screenshot: header with divider, Workspace link card, pill email invite card, "People with access" list with total count, OWNER/COLLABORATOR badges, red trash button. API responses now return `{ owner, collaborators }` (owner profile from Clerk) so the owner row and count render.
 
+- 10 Liveblocks Setup: implemented, `npm run build` passes (manual auth check pending; needs `LIVEBLOCKS_SECRET_KEY` in `.env.local`). `liveblocks.config.ts` defines Presence (`cursor`, `isThinking`) and UserMeta (`id`, `info: {name, avatar, color}`). `lib/liveblocks.ts` cached node client (globalThis), `lib/cursor-color.ts` `getCursorColor(userId)` hashes to a fixed 10-color palette. `app/api/liveblocks-auth/route.ts`: 401 unauthenticated, 400 no room, 403 no project access (via `getProjectIfAccessible`), creates room only if `getRoom` fails, returns session token with name/avatar/color; room ID = project ID. Installed `@liveblocks/node` (spec said all packages installed, but it was missing).
+
+- 11 Base Canvas: implemented, `npm run build` passes (manual browser check pending). `types/canvas.ts` (`CanvasNodeData` {label, color, shape}, `CanvasNode` type `canvasNode`, `CanvasEdge` type `canvasEdge`). `components/editor/liveblocks-canvas.tsx` (client): `LiveblocksProvider` (`/api/liveblocks-auth`), `RoomProvider` (room id, presence `{cursor: null, isThinking: false}`), `ClientSideSuspense` loading state, small class error boundary fallback for connection errors; inner `Canvas` uses `useLiveblocksFlow({suspense: true})` with empty initial nodes/edges, loose `ConnectionMode`, `fitView`, `MiniMap`, dot `Background`. Workspace page (still server-side) now renders it with `roomId`; removed placeholder `workspace-canvas.tsx`. No controls, custom node/edge rendering, persistence or AI added.
+
+- 12 Shape Panel: implemented, `npm run build` passes (manual drag/drop check pending). `lib/canvas-shapes.ts` (shape list with default sizes, `SHAPE_DRAG_MIME`, `DEFAULT_NODE_COLOR`, payload parser), `components/editor/shape-panel.tsx` (floating bottom-center pill with 6 draggable icon buttons; payload `{shape, width, height}`), `components/editor/canvas-node.tsx` (basic bordered rectangle with centered label for all shapes; shape visuals later). `liveblocks-canvas.tsx`: wrapper div with `dragover`/`drop`, `screenToFlowPosition`, new node id `<shape>-<timestamp>-<counter>`, type `canvasNode`, empty label, default color, added via `onNodesChange` add change; `ReactFlowProvider` added; `nodeTypes` registered. `CanvasNodeShape` extended with `cylinder` and `hexagon`.
+
 ## Next Up
 
-- Next feature spec (not yet planned). Canvas, Liveblocks, AI chat, and sharing are not built.
+- Next feature spec (not yet planned). Canvas controls, shape-specific node visuals, edge rendering, persistence, and AI chat are not built.
 
 ## Open Questions
 
@@ -55,3 +61,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Next 16 Cache Components: dynamic Clerk provider must sit under `<Suspense>`.
 - `createRouteMatcher` is deprecated in Clerk 7; `proxy.ts` uses a plain path check + `auth.protect()`.
 - `prisma.config.ts` loads `.env` only (dotenv/config), but `DATABASE_URL` lives in `.env.local`; export it in the shell before running prisma CLI commands.
+
+## Canvas Visual / Drag-Drop Fixes
+
+- Editor shell: canvas (`<main>`) now fills the whole area under the navbar (flush, no card border/radius/padding). Left project sidebar and right AI sidebar are `absolute` overlays (z-30, shadow, translucent) so the dotted canvas shows edge-to-edge; closed left sidebar translates by `100% + 1.5rem` and is `invisible`, so nothing peeks out.
+- Canvas: React Flow background uses `--bg-base` with a dotted pattern; minimap restyled, attribution hidden.
+- Drag-and-drop: `onDragOver`/`onDrop` moved onto `<ReactFlow>`; shape panel items are `div[draggable]` (buttons are not reliably draggable) and the drop centres the node on the cursor via `screenToFlowPosition`.
+- Nodes render their actual shape (SVG per shape; pill uses CSS rounding) instead of always a rectangle.
