@@ -29,13 +29,20 @@ interface UseCanvasAutosaveOptions {
   // Autosave stays off until the initial load check has finished, so an empty
   // room can never overwrite a saved canvas.
   enabled: boolean;
+  // Hold autosave while something else (the AI agent) is rewriting the canvas.
+  // The final state is saved once this turns false again.
+  paused?: boolean;
 }
+
+// Browsers reject keepalive requests with bodies over 64KB.
+const KEEPALIVE_LIMIT = 60_000;
 
 export function useCanvasAutosave({
   projectId,
   nodes,
   edges,
   enabled,
+  paused = false,
 }: UseCanvasAutosaveOptions) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const lastSaved = useRef<string | null>(null);
@@ -53,6 +60,9 @@ export function useCanvasAutosave({
           latest.current.nodes,
           latest.current.edges,
         );
+        // No baseline yet means the saved canvas was never loaded; saving now
+        // could overwrite it with an empty one.
+        if (lastSaved.current === null) return;
         if (snapshot === lastSaved.current) {
           setStatus((current) => (current === "idle" ? current : "saved"));
           return;
@@ -65,12 +75,18 @@ export function useCanvasAutosave({
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: snapshot,
-            ...(keepalive ? { keepalive: true } : {}),
+            ...(keepalive && snapshot.length < KEEPALIVE_LIMIT
+              ? { keepalive: true }
+              : {}),
           });
-          if (!res.ok) throw new Error(`Save failed (${res.status})`);
+          if (!res.ok) {
+            const detail = await res.text().catch(() => "");
+            throw new Error(`Save failed (${res.status}) ${detail}`);
+          }
           lastSaved.current = snapshot;
           setStatus("saved");
-        } catch {
+        } catch (error) {
+          console.error("[canvas-autosave]", error);
           setStatus("error");
           return;
         }
@@ -101,6 +117,17 @@ export function useCanvasAutosave({
   }, [enabled]);
 
   useEffect(() => {
+    if (!enabled || paused) return;
+
+    const timer = setTimeout(() => {
+      void save();
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [enabled, paused, nodes, edges, save]);
+
+  // Flush unsaved changes when the page is hidden or the canvas unmounts.
+  useEffect(() => {
     if (!enabled) return;
 
     const flush = () => {
@@ -110,18 +137,13 @@ export function useCanvasAutosave({
       }
     };
 
-    const timer = setTimeout(() => {
-      void save();
-    }, DEBOUNCE_MS);
-
     window.addEventListener("pagehide", flush);
 
     return () => {
-      clearTimeout(timer);
       flush();
       window.removeEventListener("pagehide", flush);
     };
-  }, [enabled, nodes, edges, save]);
+  }, [enabled, save]);
 
   return { status, saveNow: save };
 }
