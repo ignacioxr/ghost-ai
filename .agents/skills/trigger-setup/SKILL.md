@@ -129,7 +129,10 @@ to `.gitignore` (the CLI writes local dev state there).
 ### 6. Set the secret key (human step)
 
 For triggering from your own code, set `TRIGGER_SECRET_KEY` to the DEV key from the
-dashboard's API Keys page. Self-hosted users also set `TRIGGER_API_URL`.
+dashboard's API Keys page. Before adding it, verify that the selected environment file is ignored
+by the target project (for example, run `git check-ignore -q .env.local`). If it is not ignored,
+use another ignored local file or add the selected file to `.gitignore` first. Self-hosted users
+also set `TRIGGER_API_URL`.
 
 ```bash
 # .env (or .env.local for Next.js)

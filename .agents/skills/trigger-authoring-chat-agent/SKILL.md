@@ -26,10 +26,13 @@ sources:
 # Authoring a chat agent
 
 A `chat.agent` runs an entire conversation as one long-lived Trigger.dev task. It wakes when a
-message arrives, freezes when none do, and in-memory state survives page refreshes, deploys, idle
-gaps, and crashes. Your code is the loop you would write anyway: messages in, `streamText` out.
-There are no API routes. The frontend talks to the agent through a `TriggerChatTransport`, so
-history accumulates server-side and the client ships only the new message each turn.
+message arrives and freezes when none do. The SDK persists the session and conversation history,
+so they survive page refreshes, idle gaps, worker crashes, and deploys. This durability does not
+extend to process-local application state: variables, maps, and caches are lost on worker crashes
+or deploys unless you explicitly persist them. Your code is the loop you would write anyway:
+messages in, `streamText` out. There are no API routes. The frontend talks to the agent through a
+`TriggerChatTransport`, so history accumulates server-side and the client ships only the new
+message each turn.
 
 Works with Vercel AI SDK v5, v6, or v7. On v7 also install `@ai-sdk/otel` so model calls are traced
 (the SDK registers it for you).
@@ -76,8 +79,12 @@ import { chat } from "@trigger.dev/sdk/ai";
 // Creates the Session + first run, returns a session PAT. Idempotent on (env, chatId).
 export const startChatSession = chat.createStartSessionAction("my-chat");
 
-// Pure mint. The transport calls this on 401/403 to refresh an expired token.
+// Replace these app-specific helpers with your authentication and database access checks.
 export async function mintChatAccessToken(chatId: string) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error("Unauthorized");
+  if (!(await canAccessChat(user.id, chatId))) throw new Error("Forbidden");
+
   return auth.createPublicToken({
     scopes: { read: { sessions: chatId }, write: { sessions: chatId } },
     expirationTime: "1h",

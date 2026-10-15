@@ -108,9 +108,12 @@ const researchTool = tool({
   inputSchema: z.object({ topic: z.string() }),
   execute: async function* ({ topic }, { abortSignal }) {
     const chat = new AgentChat({ agent: "research-agent" });
-    const stream = await chat.sendMessage(topic, { abortSignal });
-    yield* stream.messages(); // UIMessage snapshots become preliminary tool results
-    await chat.close();
+    try {
+      const stream = await chat.sendMessage(topic, { abortSignal });
+      yield* stream.messages(); // UIMessage snapshots become preliminary tool results
+    } finally {
+      await chat.close();
+    }
   },
   toModelOutput: ({ output: message }) => {
     const lastText = message?.parts?.findLast((p: { type: string }) => p.type === "text") as
@@ -181,8 +184,8 @@ compaction: {
 
 `actionSchema` validates; `onAction` mutates via `chat.history` (`slice`, `replace`, `rollbackTo`,
 `remove`, `getPendingToolCalls`, `extractNewToolResults`). Actions fire `hydrateMessages` and
-`onAction` only, never `run()` or the turn hooks. Return a `StreamTextResult`, string, or `UIMessage`
-to also emit a model response.
+`onAction` only, never `run()` or the turn hooks. Returning a `StreamTextResult`, string, or
+`UIMessage` is unsupported; return `chat.turn()` to emit a model response from the edited history.
 
 ```ts
 export const myChat = chat.agent({
@@ -195,7 +198,13 @@ export const myChat = chat.agent({
     if (action.type === "undo") chat.history.slice(0, -2);
     if (action.type === "rollback") chat.history.rollbackTo(action.targetMessageId);
   },
-  run: async ({ messages, signal }) => streamText({ model: anthropic("claude-sonnet-4-5"), messages, abortSignal: signal }),
+  run: async ({ messages, signal }) =>
+    streamText({
+      ...chat.toStreamTextOptions(),
+      model: anthropic("claude-sonnet-4-5"),
+      messages,
+      abortSignal: signal,
+    }),
 });
 ```
 

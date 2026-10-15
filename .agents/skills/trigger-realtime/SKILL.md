@@ -141,9 +141,10 @@ export function TriggerButton({ triggerToken }: { triggerToken: string }) {
 import { useRealtimeTaskTrigger } from "@trigger.dev/react-hooks";
 import type { myTask } from "@/trigger/myTask";
 
-export function Runner({ publicAccessToken }: { publicAccessToken: string }) {
+// triggerToken is minted on the server with auth.createTriggerPublicToken, not createPublicToken.
+export function Runner({ triggerToken }: { triggerToken: string }) {
   const { submit, run, isLoading } = useRealtimeTaskTrigger<typeof myTask>("my-task", {
-    accessToken: publicAccessToken,
+    accessToken: triggerToken,
   });
   if (run) return <div>{run.status}</div>;
   return <button onClick={() => submit({ foo: "bar" })} disabled={isLoading}>Run</button>;

@@ -125,28 +125,27 @@ function SpecPreviewDialog({
   spec: SpecItem | null;
   onClose: () => void;
 }) {
-  const [content, setContent] = useState<string | null>(null);
-  const [error, setError] = useState(false);
+  const [result, setResult] = useState<
+    | { projectId: string; specId: string; status: "loaded"; content: string }
+    | { projectId: string; specId: string; status: "error" }
+    | null
+  >(null);
   const specId = spec?.id;
+  const currentResult =
+    result?.projectId === projectId && result.specId === specId ? result : null;
 
   useEffect(() => {
     if (!specId) return;
     const controller = new AbortController();
-    setContent(null);
-    setError(false);
     fetch(specUrl(projectId, specId), { signal: controller.signal })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to load spec");
-        setContent(await res.text());
+        setResult({ projectId, specId, status: "loaded", content: await res.text() });
       })
       .catch((e) => {
-        if (e.name !== "AbortError") setError(true);
+        if (e.name !== "AbortError") setResult({ projectId, specId, status: "error" });
       });
-    // Content is dropped as soon as the dialog closes or changes.
-    return () => {
-      controller.abort();
-      setContent(null);
-    };
+    return () => controller.abort();
   }, [projectId, specId]);
 
   return (
@@ -161,14 +160,14 @@ function SpecPreviewDialog({
 
         <ScrollArea className="min-h-0 flex-1 rounded-xl border border-surface-border bg-elevated">
           <div className="max-h-[60vh] px-4 py-3 text-sm text-copy-secondary [&_a]:text-ai-text [&_a]:underline [&_code]:rounded [&_code]:bg-subtle/60 [&_code]:px-1 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_h1]:text-copy-primary [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-copy-primary [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:font-semibold [&_h3]:text-copy-primary [&_li]:my-0.5 [&_ol]:ml-5 [&_ol]:list-decimal [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-subtle/60 [&_pre]:p-3 [&_table]:my-3 [&_td]:border [&_td]:border-surface-border [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:border-surface-border [&_th]:px-2 [&_th]:py-1 [&_ul]:ml-5 [&_ul]:list-disc">
-            {error ? (
+            {currentResult?.status === "error" ? (
               <p className="text-red-400">Couldn&apos;t load this spec.</p>
-            ) : content === null ? (
+            ) : currentResult?.status !== "loaded" ? (
               <div className="flex justify-center py-8 text-copy-muted">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentResult.content}</ReactMarkdown>
             )}
           </div>
         </ScrollArea>

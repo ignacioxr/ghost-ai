@@ -94,6 +94,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
+- Addressed reviewed Trigger.dev guidance, stale spec-preview responses, and design-agent retry behavior.
 - Fixed concrete doc issues in the Liveblocks reference library (broken links, invalid examples, and typos) without changing the working app code paths.
 - Run node commands with Node >=20 (shell default is 18; use nvm v22).
 - shadcn CLI generated `import { cn } from "cn"` (unrelated npm package); replaced with `@/lib/utils` in components/ui/*.

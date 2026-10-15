@@ -4,7 +4,7 @@ description: >
   Covers writing backend Trigger.dev tasks with @trigger.dev/sdk: defining task() and
   schemaTask(), the run function and its ctx, retries, waits, queues and concurrency,
   idempotency keys, run metadata, logging, triggering other tasks (and the Result shape),
-  scheduled/cron tasks, and the essentials of trigger.config.ts. Load this whenever you are
+  scheduled/cron tasks, and the essentials of trigger.config.ts. Use this skill when you are
   authoring or editing code inside a /trigger directory, defining a task, or writing backend
   code that triggers tasks. Realtime/React hooks and AI chat are covered by separate skills.
 type: core

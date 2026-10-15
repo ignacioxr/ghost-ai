@@ -92,6 +92,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const designAgent = task({
   id: "design-agent",
+  retry: { maxAttempts: 1 },
   run: async (payload: DesignAgentPayload) => {
     const { prompt, roomId } = payload;
     const client = getClient();

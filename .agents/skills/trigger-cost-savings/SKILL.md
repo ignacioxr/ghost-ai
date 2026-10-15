@@ -40,7 +40,7 @@ Live run analysis needs the **Trigger.dev MCP server**. Verify these tools are a
 If they're not available, tell the user to install the MCP server:
 
 ```bash
-npx trigger.dev@latest install-mcp
+npx trigger.dev@4.7.4 install-mcp
 ```
 
 Without the MCP tools you can still do the static source analysis below; do not fabricate run data.
@@ -76,7 +76,7 @@ Present a prioritized report with estimated impact:
 ## Cost Optimization Report
 
 ### High impact
-1. **Right-size `process-images`** — currently `large-2x`, average run 2s. `small-2x` could cut this task's cost by ~16x.
+1. **Right-size `process-images`** — currently `large-2x`, average run 2s. `small-2x` could cut this task's cost by ~8x.
    `machine: { preset: "small-2x" }`  // was "large-2x"
 
 ### Medium impact
