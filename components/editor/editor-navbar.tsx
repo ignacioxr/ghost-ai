@@ -2,6 +2,10 @@
 
 import { UserButton } from "@clerk/nextjs";
 import {
+  AlertCircle,
+  Check,
+  Loader2,
+  Save,
   PanelLeftClose,
   LayoutTemplate,
   PanelLeftOpen,
@@ -11,6 +15,7 @@ import {
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
+import type { SaveStatus } from "@/hooks/useCanvasAutosave";
 
 const subscribe = () => () => {};
 
@@ -22,6 +27,8 @@ interface EditorNavbarProps {
   onToggleAiSidebar?: () => void;
   onShare?: () => void;
   onOpenTemplates?: () => void;
+  saveStatus?: SaveStatus;
+  onSave?: () => void;
 }
 
 export function EditorNavbar({
@@ -32,6 +39,8 @@ export function EditorNavbar({
   onToggleAiSidebar,
   onShare,
   onOpenTemplates,
+  saveStatus = "idle",
+  onSave,
 }: EditorNavbarProps) {
   // Clerk mounts its UserButton client-side only; defer it to avoid a hydration mismatch.
   const isClient = useSyncExternalStore(
@@ -71,6 +80,31 @@ export function EditorNavbar({
               <LayoutTemplate className="h-4 w-4" />
               Templates
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSave}
+              disabled={!onSave || saveStatus === "saving"}
+              aria-live="polite"
+              className={saveStatus === "error" ? "text-destructive" : ""}
+            >
+              {saveStatus === "saving" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : saveStatus === "saved" ? (
+                <Check className="h-4 w-4" />
+              ) : saveStatus === "error" ? (
+                <AlertCircle className="h-4 w-4" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {saveStatus === "saving"
+                ? "Saving…"
+                : saveStatus === "saved"
+                  ? "Saved"
+                  : saveStatus === "error"
+                    ? "Error"
+                    : "Save"}
+            </Button>
             <Button variant="outline" size="sm" onClick={onShare}>
               <Share2 className="h-4 w-4" />
               Share
@@ -93,7 +127,7 @@ export function EditorNavbar({
             </Button>
           </>
         )}
-        {isClient && <UserButton />}
+        {isClient && !projectName && <UserButton />}
       </div>
     </header>
   );
