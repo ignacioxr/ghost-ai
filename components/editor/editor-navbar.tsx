@@ -3,6 +3,7 @@
 import { UserButton } from "@clerk/nextjs";
 import {
   PanelLeftClose,
+  LayoutTemplate,
   PanelLeftOpen,
   Share2,
   Sparkles,
@@ -20,6 +21,7 @@ interface EditorNavbarProps {
   isAiSidebarOpen?: boolean;
   onToggleAiSidebar?: () => void;
   onShare?: () => void;
+  onOpenTemplates?: () => void;
 }
 
 export function EditorNavbar({
@@ -29,6 +31,7 @@ export function EditorNavbar({
   isAiSidebarOpen = false,
   onToggleAiSidebar,
   onShare,
+  onOpenTemplates,
 }: EditorNavbarProps) {
   // Clerk mounts its UserButton client-side only; defer it to avoid a hydration mismatch.
   const isClient = useSyncExternalStore(
@@ -64,6 +67,10 @@ export function EditorNavbar({
       <div className="flex items-center justify-end gap-2">
         {projectName && (
           <>
+            <Button variant="outline" size="sm" onClick={onOpenTemplates}>
+              <LayoutTemplate className="h-4 w-4" />
+              Templates
+            </Button>
             <Button variant="outline" size="sm" onClick={onShare}>
               <Share2 className="h-4 w-4" />
               Share

@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- 12 Shape Panel
+- 18 Starter Template
 
 ## Current Goal
 
-- Drag shapes from a bottom panel onto the collaborative canvas to create nodes.
+- Starter template library: navbar button opens a modal; importing replaces the canvas and fits the view.
 
 ## Completed
 
@@ -37,6 +37,18 @@ Update this file whenever the current phase, active feature, or implementation s
 - 11 Base Canvas: implemented, `npm run build` passes (manual browser check pending). `types/canvas.ts` (`CanvasNodeData` {label, color, shape}, `CanvasNode` type `canvasNode`, `CanvasEdge` type `canvasEdge`). `components/editor/liveblocks-canvas.tsx` (client): `LiveblocksProvider` (`/api/liveblocks-auth`), `RoomProvider` (room id, presence `{cursor: null, isThinking: false}`), `ClientSideSuspense` loading state, small class error boundary fallback for connection errors; inner `Canvas` uses `useLiveblocksFlow({suspense: true})` with empty initial nodes/edges, loose `ConnectionMode`, `fitView`, `MiniMap`, dot `Background`. Workspace page (still server-side) now renders it with `roomId`; removed placeholder `workspace-canvas.tsx`. No controls, custom node/edge rendering, persistence or AI added.
 
 - 12 Shape Panel: implemented, `npm run build` passes (manual drag/drop check pending). `lib/canvas-shapes.ts` (shape list with default sizes, `SHAPE_DRAG_MIME`, `DEFAULT_NODE_COLOR`, payload parser), `components/editor/shape-panel.tsx` (floating bottom-center pill with 6 draggable icon buttons; payload `{shape, width, height}`), `components/editor/canvas-node.tsx` (basic bordered rectangle with centered label for all shapes; shape visuals later). `liveblocks-canvas.tsx`: wrapper div with `dragover`/`drop`, `screenToFlowPosition`, new node id `<shape>-<timestamp>-<counter>`, type `canvasNode`, empty label, default color, added via `onNodesChange` add change; `ReactFlowProvider` added; `nodeTypes` registered. `CanvasNodeShape` extended with `cylinder` and `hexagon`.
+
+- 13 Node Shape: implemented, `npm run build` result below (manual browser check pending). `components/editor/canvas-node.tsx` exports `ShapeGraphic` (CSS-styled div for rectangle/pill/circle; scalable `preserveAspectRatio="none"` SVG with non-scaling stroke for diamond/hexagon/cylinder; subtle border at rest, brighter when `selected`); `CanvasNodeView` uses it. `shape-panel.tsx`: default drag image hidden, ghost `ShapeGraphic` (same shape, default size, default color) follows cursor via window `dragover`, cleared on `drop`/`dragend`. Drop/node creation unchanged.
+
+- 14 Node Editing: implemented in `components/editor/canvas-node.tsx` (`npm run build` passes; manual browser check pending). `NodeResizer` shown when selected (min 80x56, subtle white/20 lines, small dark handles); resize flows through `onNodesChange`. Double-click label area opens an overlaid autosizing textarea (mirrored span keeps layout stable; placeholder `Label` when empty); typing calls `updateNodeData` (synced via Liveblocks); closes on blur/Escape; textarea uses `nodrag nopan nowheel` and stops pointer/key propagation.
+
+- 15 Nodes Color Toolbar: implemented in `components/editor/canvas-node.tsx` (`npm run build` passes; manual browser check pending). `types/canvas.ts` now holds `NODE_COLORS` (8 pairs from ui-context) and `CanvasNodeData.textColor`; default node color switched to `#1F1F1F`/`#EDEDED` in `lib/canvas-shapes.ts`. `NodeToolbar` (top, offset 12) shown only when selected: one swatch per pair, active swatch ringed in its text color, hover glow in text color, `nodrag nopan` + pointer stopPropagation. Click calls `updateNodeData` with `{color, textColor}` (no server calls). Node text uses `data.textColor` (falls back to palette lookup for older nodes).
+
+- 16 Edge Behavior: implemented, `npm run build` passes (manual browser check pending). New `components/editor/canvas-edge.tsx` (`CanvasEdgeView`): `getSmoothStepPath` + `BaseEdge` (dimmed at rest, full opacity on hover/select, 24px interaction width), double-click to edit label, `EdgeLabelRenderer` positioned at the path's `labelX/labelY`, auto-growing input (`size` follows text), saves on blur/Enter/Escape (typing updates live via `updateEdgeData`), saved labels as pill badges, faint hint on selected unlabeled edge, `nodrag nopan nowheel` + pointer stopPropagation. `CanvasEdge` data is now `{ label?: string }`. `liveblocks-canvas.tsx` registers `canvasEdge: CanvasEdgeView`; new edges use `#f8fafc` stroke, round linecap, closed arrow marker. Node handles (all four sides) restyled as small white dots with dark border, hidden until node hover.
+
+- 17 Canvas Ergonomics: implemented, `npm run build` passes (manual browser check pending). `components/editor/canvas-controls.tsx` pill bar at bottom-left (zoom out / fit view / zoom in | divider | undo / redo); zoom via React Flow instance with 200ms animation, undo/redo via Liveblocks `useUndo`/`useRedo`, disabled + dimmed via `useCanUndo`/`useCanRedo`. `hooks/useKeyboardShortcuts.ts`: window keydown, skips input/textarea/select/contenteditable; `+`/`=` zoom in, `-` zoom out, Cmd/Ctrl+Z undo, Cmd/Ctrl+Shift+Z and Cmd/Ctrl+Y redo. MiniMap removed from `liveblocks-canvas.tsx`.
+
+- 18 Starter Template: implemented, `npm run build` result below (manual browser check pending). `components/editor/starter-templates.ts` (`CanvasTemplate`, `CANVAS_TEMPLATES`: Microservices, CI/CD Pipeline, Event-Driven System; `node`/`edge` helpers using shared types + `NODE_COLORS`). `starter-templates-modal.tsx` (dialog, scrollable card grid, lightweight SVG preview computed from node bounds, Import button calls `onImport` then closes). `starter-templates-context.tsx` bridges `EditorShell` (owns open state, navbar "Templates" button) to `LiveblocksCanvas`, which renders the modal; import removes all existing edges + nodes via `onEdgesChange`/`onNodesChange`, adds template items, then `fitView`. No saving, custom templates, or persistence.
 
 ## Next Up
 

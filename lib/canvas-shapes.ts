@@ -1,8 +1,9 @@
-import type { CanvasNodeShape } from "@/types/canvas";
+import { NODE_COLORS, type CanvasNodeShape } from "@/types/canvas";
 
 export const SHAPE_DRAG_MIME = "application/x-ghost-shape";
 
-export const DEFAULT_NODE_COLOR = "#2a2f3a";
+export const DEFAULT_NODE_COLOR = NODE_COLORS[0].color;
+export const DEFAULT_NODE_TEXT_COLOR = NODE_COLORS[0].textColor;
 
 export type ShapeDefinition = {
   shape: CanvasNodeShape;
