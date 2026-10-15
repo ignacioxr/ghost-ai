@@ -20,6 +20,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@prisma/extension-accelerate": "^3.0.1",
+    "@vercel/blob": "^2.8.2",
     "@xyflow/react": "^12.12.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

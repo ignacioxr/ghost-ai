@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- 18 Starter Template
+- 21 Canvas Autosave
 
 ## Current Goal
 
-- Starter template library: navbar button opens a modal; importing replaces the canvas and fits the view.
+- Persist the collaborative canvas to Vercel Blob (URL on the Prisma project), autosave with debounce, and load into an empty room.
 
 ## Completed
 
@@ -49,6 +49,13 @@ Update this file whenever the current phase, active feature, or implementation s
 - 17 Canvas Ergonomics: implemented, `npm run build` passes (manual browser check pending). `components/editor/canvas-controls.tsx` pill bar at bottom-left (zoom out / fit view / zoom in | divider | undo / redo); zoom via React Flow instance with 200ms animation, undo/redo via Liveblocks `useUndo`/`useRedo`, disabled + dimmed via `useCanUndo`/`useCanRedo`. `hooks/useKeyboardShortcuts.ts`: window keydown, skips input/textarea/select/contenteditable; `+`/`=` zoom in, `-` zoom out, Cmd/Ctrl+Z undo, Cmd/Ctrl+Shift+Z and Cmd/Ctrl+Y redo. MiniMap removed from `liveblocks-canvas.tsx`.
 
 - 18 Starter Template: implemented, `npm run build` result below (manual browser check pending). `components/editor/starter-templates.ts` (`CanvasTemplate`, `CANVAS_TEMPLATES`: Microservices, CI/CD Pipeline, Event-Driven System; `node`/`edge` helpers using shared types + `NODE_COLORS`). `starter-templates-modal.tsx` (dialog, scrollable card grid, lightweight SVG preview computed from node bounds, Import button calls `onImport` then closes). `starter-templates-context.tsx` bridges `EditorShell` (owns open state, navbar "Templates" button) to `LiveblocksCanvas`, which renders the modal; import removes all existing edges + nodes via `onEdgesChange`/`onNodesChange`, adds template items, then `fitView`. No saving, custom templates, or persistence.
+
+- 19 Presence Avatars & Cursors: implemented, `npm run build` result below (manual multi-user check pending). Presence type renamed `isThinking` → `thinking` in `liveblocks.config.ts` per spec. `components/editor/presence-avatars.tsx` (top-right of canvas: up to 5 overlapping collaborator avatars with photo/initials fallback and ring, `+N` chip, divider only when collaborators exist, then Clerk `UserButton`; current user filtered out via Clerk `useUser` id). `components/editor/live-cursors.tsx` (pointer + name badge in presence color, rendered in `ViewportPortal`, counter-scaled by zoom). `liveblocks-canvas.tsx` broadcasts cursor in flow coordinates on `onMouseMove`, clears on `onMouseLeave`. Clerk `UserButton` always stays in the navbar (not in the canvas group); the canvas group shows collaborators only and renders nothing when alone.
+
+- 20 AI Sidebar Shell: implemented, `npm run build` result below (manual browser check pending). `components/editor/ai-sidebar.tsx` (`AiSidebar`, `isOpen`/`onClose` controlled by `EditorShell`; floating right panel with slide-in/out transform, `bg-base/95`, `border-surface-border`). Header: bot icon, "AI Workspace" / "Collaborate with Ghost AI", close button. shadcn `Tabs`: AI Architect (scrollable `ScrollArea`, empty state with 3 starter chips that fill the input, local-only user/assistant bubble styles, auto-resizing `Textarea` 72-160px, Enter sends / Shift+Enter newline, send button) and Specs (Generate Spec button + static demo spec card with disabled download). Spec token names mapped to existing tokens: `bg-accent`/`text-accent` -> `bg-ai`/`text-ai-text`, `text-accent-text` -> `text-ai-text`, `bg-brand-dim` -> `bg-accent-dim`, `text-primary-text`/`text-muted-text` -> `text-copy-primary`/`text-copy-muted` (shadcn `accent` is a neutral surface here). Sending only appends a user message locally; no AI replies or persistence. Inline placeholder aside removed from `editor-shell.tsx`.
+
+- 21 Canvas Autosave: implemented, `npm run build` passes (manual browser check pending). Installed `@vercel/blob`. Schema already had `Project.canvasJsonPath`, so no migration. `app/api/projects/[projectId]/canvas/route.ts`: GET (owner/collaborator; reads blob via `get`, returns `{nodes, edges}`, empty when nothing saved) and PUT (validates arrays, `put` to `canvas/{projectId}.json` with overwrite, stores URL in `canvasJsonPath`). The Blob store behind `BLOB_READ_WRITE_TOKEN` is private, so access is `private` and reads go through the server. Spec's `/hook` folder = existing `hooks/`: `hooks/useCanvasAutosave.ts` (2s debounce, skips unchanged snapshots, status `idle|saving|saved|error`, disabled until the load check finishes so an empty room cannot overwrite a saved canvas). `liveblocks-canvas.tsx` loads the saved canvas only if the room has no nodes/edges (re-checked after fetch). `save-status-context.tsx` bridges canvas state to the navbar; new Save button in `editor-navbar.tsx` shows Save/Saving…/Saved/Error and saves immediately on click.
+- Autosave follow-ups: snapshots now strip `measured`/`dragging`/`selected` (they caused spurious saves after idle). `components/editor/save-indicator.tsx` floats a "Saving…" / "Saved" / "Save failed" pill above the shape panel; "Saved" hides after 2s.
 
 ## Next Up
 
