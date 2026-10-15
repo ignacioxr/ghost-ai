@@ -2,6 +2,7 @@
 
 import { useViewport } from "@xyflow/react";
 import { useOthers } from "@liveblocks/react/suspense";
+import { Loader2 } from "lucide-react";
 
 import { getCursorColor } from "@/lib/cursor-color";
 
@@ -28,10 +29,13 @@ export function LiveCursors() {
               <path d="M4 3l16 7-7 2.5L10.5 20z" />
             </svg>
             <span
-              className="ml-4 -mt-1 block w-max max-w-40 truncate rounded-full px-2 py-0.5 text-xs font-medium text-[#080809]"
+              className="ml-4 -mt-1 flex w-max max-w-40 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-[#080809]"
               style={{ backgroundColor: color }}
             >
-              {info?.name ?? "Anonymous"}
+              {presence.thinking && (
+                <Loader2 className="h-3 w-3 shrink-0 animate-spin" aria-label="Thinking" />
+              )}
+              <span className="truncate">{info?.name ?? "Anonymous"}</span>
             </span>
           </div>
         );

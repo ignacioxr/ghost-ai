@@ -37,9 +37,12 @@ import {
 
 import { CanvasControls } from "@/components/editor/canvas-controls";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
+import { AiSidebar } from "@/components/editor/ai-sidebar";
+import { useAiSidebar } from "@/components/editor/ai-sidebar-context";
 import { LiveCursors } from "@/components/editor/live-cursors";
 import { PresenceAvatars } from "@/components/editor/presence-avatars";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
+import { useAiThinking } from "@/components/editor/ai-status-feed";
 import { SaveIndicator } from "@/components/editor/save-indicator";
 import { ShapePanel } from "@/components/editor/shape-panel";
 import { useStarterTemplates } from "@/components/editor/starter-templates-context";
@@ -106,6 +109,7 @@ function Canvas({ roomId }: LiveblocksCanvasProps) {
   useKeyboardShortcuts({ reactFlow, undo, redo });
   const nodeCounter = useRef(0);
   const templates = useStarterTemplates();
+  const aiSidebar = useAiSidebar();
   const saveContext = useSaveStatusContext();
   const [roomWasPopulated] = useState(
     () => nodes.length > 0 || edges.length > 0,
@@ -115,72 +119,62 @@ function Canvas({ roomId }: LiveblocksCanvasProps) {
   useEffect(() => {
     latestCanvas.current = { nodes, edges };
   });
+  const aiThinking = useAiThinking();
   const { status, saveNow } = useCanvasAutosave({
     projectId: roomId,
     nodes,
     edges,
     enabled: loadChecked,
+    paused: aiThinking,
   });
 
   // Load the saved canvas only into an empty room; never overwrite live collaboration.
+  // A failed load is not a save error: it never touches the save status. Autosave
+  // simply stays off until a load succeeds, so an empty room can't overwrite a saved canvas.
   useEffect(() => {
     if (roomWasPopulated) return;
     const controller = new AbortController();
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    (async () => {
+    const load = async (attemptsLeft: number) => {
       try {
         const res = await fetch(`/api/projects/${roomId}/canvas`, {
           signal: controller.signal,
         });
-
-        if (!res.ok) {
-          saveContext?.setState({
-            status: "error",
-            saveNow: () => void saveNow(),
-          });
-          return;
-        }
+        if (!res.ok) throw new Error(`Load failed (${res.status})`);
 
         const saved = (await res.json().catch(() => null)) as
           | { nodes: CanvasNode[]; edges: CanvasEdge[] }
           | null;
-        const current = latestCanvas.current;
-
         if (!saved || !Array.isArray(saved.nodes) || !Array.isArray(saved.edges)) {
-          saveContext?.setState({
-            status: "error",
-            saveNow: () => void saveNow(),
+          throw new Error("Invalid canvas payload");
+        }
+
+        const current = latestCanvas.current;
+        const roomHasContent = current.nodes.length > 0 || current.edges.length > 0;
+        const nothingSaved = saved.nodes.length === 0 && saved.edges.length === 0;
+
+        if (!roomHasContent && !nothingSaved) {
+          room.batch(() => {
+            onNodesChange(saved.nodes.map((item) => ({ type: "add", item })));
+            onEdgesChange(saved.edges.map((item) => ({ type: "add", item })));
           });
-          return;
+          requestAnimationFrame(() => {
+            void reactFlow.fitView({ padding: 0.2 });
+          });
         }
-
-        if (current.nodes.length > 0 || current.edges.length > 0) {
-          setLoadChecked(true);
-          return;
-        }
-
-        if (saved.nodes.length === 0 && saved.edges.length === 0) {
-          setLoadChecked(true);
-          return;
-        }
-
-        room.batch(() => {
-          onNodesChange(saved.nodes.map((item) => ({ type: "add", item })));
-          onEdgesChange(saved.edges.map((item) => ({ type: "add", item })));
-        });
-        requestAnimationFrame(() => {
-          void reactFlow.fitView({ padding: 0.2 });
-        });
         setLoadChecked(true);
       } catch {
-        saveContext?.setState({
-          status: "error",
-          saveNow: () => void saveNow(),
-        });
+        if (controller.signal.aborted || attemptsLeft <= 0) return;
+        retryTimer = setTimeout(() => void load(attemptsLeft - 1), 1500);
       }
-    })();
+    };
+    void load(2);
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      clearTimeout(retryTimer);
+    };
     // Runs once on mount; later changes must not trigger a reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
@@ -363,6 +357,9 @@ function Canvas({ roomId }: LiveblocksCanvasProps) {
           onOpenChange={templates.setOpen}
           onImport={handleImportTemplate}
         />
+      )}
+      {aiSidebar && (
+        <AiSidebar isOpen={aiSidebar.isOpen} onClose={aiSidebar.onClose} />
       )}
     </div>
   );

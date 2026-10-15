@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
-import { AiSidebar } from "@/components/editor/ai-sidebar";
+import { AiSidebarContext } from "@/components/editor/ai-sidebar-context";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import {
@@ -76,16 +76,17 @@ function EditorShellContent({ children }: { children: ReactNode }) {
               <SaveStatusContext.Provider
                 value={{ state: saveState, setState: setSaveState }}
               >
-                {children}
+                <AiSidebarContext.Provider
+                  value={{
+                    isOpen: isAiSidebarOpen,
+                    onClose: () => setIsAiSidebarOpen(false),
+                  }}
+                >
+                  {children}
+                </AiSidebarContext.Provider>
               </SaveStatusContext.Provider>
             </StarterTemplatesContext.Provider>
           </main>
-          {activeProject && (
-            <AiSidebar
-              isOpen={isAiSidebarOpen}
-              onClose={() => setIsAiSidebarOpen(false)}
-            />
-          )}
         </div>
       </div>
       <ProjectDialogs />
